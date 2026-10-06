@@ -1,0 +1,9 @@
+.env
+.git
+.gitignore
+target
+evidencias
+capturas
+*.log
+.idea
+.vscode

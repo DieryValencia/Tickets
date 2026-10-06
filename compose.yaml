@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: tickets-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tickets_eventos_db
+      POSTGRES_USER: tickets_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5434:5432"
+    volumes:
+      - tickets_postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tickets_user -d tickets_eventos_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: tickets-app
+    restart: unless-stopped
+    profiles: ["docker"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tickets_eventos_db
+      SPRING_DATASOURCE_USERNAME: tickets_user
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "8082:8082"
+
+volumes:
+  tickets_postgres_data:
